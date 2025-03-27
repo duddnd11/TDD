@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
+import java.util.concurrent.CountDownLatch;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,6 @@ public class UserPointServiceInterTest {
 	
 	@Autowired
 	UserPointRepository userRepository;
-	
 	
 	@Test
 	@DisplayName("포인트 충전")
@@ -126,5 +127,59 @@ public class UserPointServiceInterTest {
 		
 		// when & then
 		assertThrows(IllegalArgumentException.class, () -> userPointService.findPointById(id));
+	}
+	
+	@Test
+	@DisplayName("포인트 충전 동시성 테스트")
+	void chargeConcurrent() throws InterruptedException {
+		// given
+		long id = 1L;
+		long amount = 100L;
+		UserPoint userPoint = new UserPoint(id, amount, System.currentTimeMillis());
+		userRepository.save(userPoint);
+		
+		int numberOfThread = 100;
+		CountDownLatch countDownLatch = new CountDownLatch(numberOfThread);
+		
+		// when
+		for(int i=0; i<numberOfThread; i++) {
+			new Thread(() -> {
+				userPointService.charge(id, 30L);                
+				countDownLatch.countDown();  // 작업이 끝나면 countDown 호출
+            }).start();
+		}
+		
+		countDownLatch.await();
+		
+		// then
+		UserPoint resultUserPoint = userPointService.findPointById(id);
+		assertThat(resultUserPoint.point()).isEqualTo(3100L);
+	}
+	
+	@Test
+	@DisplayName("포인트 사용 동시성 테스트")
+	void usePointConcurrent() throws InterruptedException {
+		//given
+		long id = 1L;
+		long amount = 3000L;
+		UserPoint userPoint = new UserPoint(id, amount, System.currentTimeMillis());
+		userRepository.save(userPoint);
+		
+		int numberOfThread = 100;
+		CountDownLatch countDownLatch = new CountDownLatch(numberOfThread);
+		
+		// when
+		for(int i=0; i<numberOfThread; i++) {
+			new Thread(() -> {
+				userPointService.use(id, 20L);
+				countDownLatch.countDown();
+			}).start();
+		}
+		
+		countDownLatch.await();
+		
+		// then
+		UserPoint resultUserPoint = userPointService.findPointById(id);
+		assertThat(resultUserPoint.point()).isEqualTo(1000L);
 	}
 }
