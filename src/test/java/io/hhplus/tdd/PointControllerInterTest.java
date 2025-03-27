@@ -17,7 +17,6 @@ import io.hhplus.tdd.point.PointHistoryService;
 import io.hhplus.tdd.point.UserPointService;
 
 @SpringBootTest
-//@AutoConfigureWebMvc
 @AutoConfigureMockMvc
 public class PointControllerInterTest {
 	
