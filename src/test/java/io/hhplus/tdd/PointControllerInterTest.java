@@ -11,13 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 
 import io.hhplus.tdd.point.PointHistoryService;
 import io.hhplus.tdd.point.UserPointService;
 
 @SpringBootTest
-//@AutoConfigureWebMvc
 @AutoConfigureMockMvc
 public class PointControllerInterTest {
 	
@@ -31,6 +31,7 @@ public class PointControllerInterTest {
 	PointHistoryService pointHistoryService;
 	
 	@Test
+	@DirtiesContext // 테스트 끝난후 컨텍스트 초기화
 	@DisplayName("포인트 조회 컨트롤러 테스트")
 	void point() throws Exception {
 		long id = 1L;
@@ -46,6 +47,7 @@ public class PointControllerInterTest {
 	}
 	
 	@Test
+	@DirtiesContext
 	@DisplayName("포인트 내역 조회 컨트롤러 테스트")
 	void pointHistories() throws Exception {
 		long id = 1L;
@@ -70,6 +72,7 @@ public class PointControllerInterTest {
 	}
 	
 	@Test
+	@DirtiesContext
 	@DisplayName("포인트 충전 컨트롤러 테스트")
 	void pointCharge() throws Exception {
 		mockMvc.perform(patch("/point/1/charge")  // PATCH 요청을 "/point/1" URL로 보냄
@@ -80,6 +83,7 @@ public class PointControllerInterTest {
 	}
 	
 	@Test
+	@DirtiesContext
 	@DisplayName("포인트 사용 컨트롤러 테스트")
 	void pointUse() throws Exception {
 		userPointService.charge(1L, 500L);
